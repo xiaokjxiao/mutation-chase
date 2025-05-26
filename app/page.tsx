@@ -9,43 +9,8 @@ import { GameMenu } from "@/components/game-menu"
 import { GameOver } from "@/components/game-over"
 import { SpeedIndicator } from "@/components/speed-indicator"
 import { useSound } from "@/hooks/use-sound"
-
-// Z-algorithm implementation
-function zAlgorithm(s: string): number[] {
-  const n = s.length
-  const z = new Array(n).fill(0)
-  let l = 0,
-    r = 0
-
-  for (let i = 1; i < n; i++) {
-    if (i <= r) {
-      z[i] = Math.min(r - i + 1, z[i - l])
-    }
-    while (i + z[i] < n && s[z[i]] === s[i + z[i]]) {
-      z[i]++
-    }
-    if (i + z[i] - 1 > r) {
-      l = i
-      r = i + z[i] - 1
-    }
-  }
-
-  return z
-}
-
-// Generate random DNA sequence
-function generateDNA(length: number): string {
-  const bases = ["A", "T", "G", "C"]
-  return Array.from({ length }, () => bases[Math.floor(Math.random() * bases.length)]).join("")
-}
-
-// Calculate speed bonus multiplier
-function calculateSpeedBonus(completionTime: number): number {
-  if (completionTime < 3) return 3.0
-  if (completionTime < 6) return 2.0
-  if (completionTime < 10) return 1.5
-  return 1.0
-}
+import { findExactMatches } from "@/utils/z-algorithm"
+import { generateDNA, calculateSpeedBonus } from "@/utils/game-utils"
 
 export default function MutationChase() {
   const [isPending, startTransition] = useTransition()
@@ -72,22 +37,6 @@ export default function MutationChase() {
 
   // Sound effects
   const { playCorrectSound, playWrongSound, playLevelUpSound, playGameOverSound, playPatternCompleteSound } = useSound()
-
-  // Find exact matches using Z-algorithm
-  const findExactMatches = useCallback((p: string, s: string): Set<number> => {
-    const combined = p + "$" + s
-    const z = zAlgorithm(combined)
-    const patternLength = p.length
-    const matches = new Set<number>()
-
-    for (let i = patternLength + 1; i < z.length; i++) {
-      if (z[i] === patternLength) {
-        matches.add(i - patternLength - 1)
-      }
-    }
-
-    return matches
-  }, [])
 
   // Start new game
   const startGame = useCallback(() => {
@@ -121,7 +70,7 @@ export default function MutationChase() {
       setCurrentSpeedBonus(1.0)
       setActivePatternElapsed(0)
     })
-  }, [level, findExactMatches])
+  }, [level])
 
   // Handle base click
   const handleBaseClick = useCallback(
