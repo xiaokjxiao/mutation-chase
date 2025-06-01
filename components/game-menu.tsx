@@ -1,12 +1,12 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Dna } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Dna } from "lucide-react";
 
 interface GameMenuProps {
-  onStartGame: () => void
-  isPending: boolean
+  onStartGame: () => void;
+  isPending: boolean;
 }
 
 export function GameMenu({ onStartGame, isPending }: GameMenuProps) {
@@ -17,8 +17,12 @@ export function GameMenu({ onStartGame, isPending }: GameMenuProps) {
           <div className="flex justify-center mb-4">
             <Dna className="w-16 h-16 text-cyan-400" />
           </div>
-          <CardTitle className="text-3xl font-bold text-white mb-2 font-orbitron">Mutation Chase</CardTitle>
-          <p className="text-cyan-300 font-rajdhani text-lg">The Viral Escape</p>
+          <CardTitle className="text-3xl font-bold text-white mb-2 font-orbitron">
+            Mutation Chase
+          </CardTitle>
+          <p className="text-cyan-300 font-rajdhani text-lg">
+            The Viral Escape
+          </p>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="text-sm text-slate-300 space-y-2 font-rajdhani">
@@ -38,5 +42,5 @@ export function GameMenu({ onStartGame, isPending }: GameMenuProps) {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

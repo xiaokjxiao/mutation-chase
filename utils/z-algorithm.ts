@@ -27,14 +27,14 @@ export function zAlgorithm(s: string): number[] {
 
 // find exact matches of pattern p in string s using Z-algorithm
 export function findExactMatches(p: string, s: string): Set<number> {
-  const combined = p + "$" + s
-  const z = zAlgorithm(combined)
-  const patternLength = p.length
-  const matches = new Set<number>()
+  const combined = p + "$" + s // glue the pattern and the string with a separator
+  const z = zAlgorithm(combined) // compute the Z-array for the combined string
+  const patternLength = p.length // length of the pattern
 
-  for (let i = patternLength + 1; i < z.length; i++) {
-    if (z[i] === patternLength) {
-      matches.add(i - patternLength - 1)
+  const matches = new Set<number>() // use a Set to store unique match positions
+  for (let i = patternLength + 1; i < z.length; i++) { // start checking from the position after the pattern and separator
+    if (z[i] === patternLength) { // if the Z-value matches the length of the pattern, we found a match
+      matches.add(i - patternLength - 1) // add the match position to the Set
     }
   }
 

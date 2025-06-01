@@ -1,14 +1,14 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Skull } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Skull } from "lucide-react";
 
 interface GameOverProps {
-  score: number
-  level: number
-  onRestart: () => void
-  reason: "time" | "danger"
+  score: number;
+  level: number;
+  onRestart: () => void;
+  reason: "time" | "danger";
 }
 
 export function GameOver({ score, level, onRestart, reason }: GameOverProps) {
@@ -31,7 +31,9 @@ export function GameOver({ score, level, onRestart, reason }: GameOverProps) {
               Level Reached: <span className="font-mono">{level}</span>
             </p>
             <p className="text-red-300 text-sm mt-2 font-rajdhani">
-              {reason === "danger" ? "Too many wrong selections!" : "Ran out of time!"}
+              {reason === "danger"
+                ? "Too many wrong selections!"
+                : "Ran out of time!"}
             </p>
           </div>
           <Button
@@ -43,5 +45,5 @@ export function GameOver({ score, level, onRestart, reason }: GameOverProps) {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

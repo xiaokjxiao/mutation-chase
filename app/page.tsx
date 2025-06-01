@@ -86,7 +86,7 @@ export default function MutationChase() {
       }
 
       const matches = findExactMatches(newPattern, newStrand);
-      const newMaxTime = Math.max(15, 30 - level * 2);
+      const newMaxTime = Math.max(15, 30 - level * 2); // Minimum 15 seconds and scales with level 
 
       setPattern(newPattern);
       setStrand(newStrand);
@@ -198,7 +198,7 @@ export default function MutationChase() {
         const newIncorrectBases = new Set(incorrectBases);
         newIncorrectBases.add(position);
         setIncorrectBases(newIncorrectBases);
-        setDangerScore((prev) => Math.min(100, prev + 15));
+        setDangerScore((prev) => Math.min(100, prev + 10));
         setScore((prev) => Math.max(0, prev - 50));
 
         // Reset current pattern timing if active
