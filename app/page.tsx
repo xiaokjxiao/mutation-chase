@@ -10,7 +10,7 @@ import { GameOver } from "@/components/game-over";
 import { SpeedIndicator } from "@/components/speed-indicator";
 import { useSound } from "@/hooks/use-sound";
 import { findExactMatches } from "@/utils/z-algorithm";
-import { generateDNA, calculateSpeedBonus } from "@/game-utils/game-utils";
+import { generateDNA, calculateSpeedBonus } from "@/lib/game-utils";
 import { Dna } from "lucide-react";
 
 export default function MutationChase() {
@@ -23,20 +23,30 @@ export default function MutationChase() {
   }, []);
 
   const [isPending, startTransition] = useTransition();
-  const [gameState, setGameState] = useState<"menu" | "playing" | "gameOver">("menu");
+  const [gameState, setGameState] = useState<"menu" | "playing" | "gameOver">(
+    "menu"
+  );
   const [pattern, setPattern] = useState("");
   const [strand, setStrand] = useState("");
-  const [exactMatchPositions, setExactMatchPositions] = useState<Set<number>>(new Set());
+  const [exactMatchPositions, setExactMatchPositions] = useState<Set<number>>(
+    new Set()
+  );
   const [timeLeft, setTimeLeft] = useState(30);
   const [maxTime, setMaxTime] = useState(30);
   const [score, setScore] = useState(0);
   const [level, setLevel] = useState(1);
   const [dangerScore, setDangerScore] = useState(0);
   const [selectedBases, setSelectedBases] = useState<Set<number>>(new Set());
-  const [completedMatches, setCompletedMatches] = useState<Set<number>>(new Set());
+  const [completedMatches, setCompletedMatches] = useState<Set<number>>(
+    new Set()
+  );
   const [incorrectBases, setIncorrectBases] = useState<Set<number>>(new Set());
-  const [partialMatches, setPartialMatches] = useState<Map<number, Set<number>>>(new Map());
-  const [gameOverReason, setGameOverReason] = useState<"time" | "danger">("time");
+  const [partialMatches, setPartialMatches] = useState<
+    Map<number, Set<number>>
+  >(new Map());
+  const [gameOverReason, setGameOverReason] = useState<"time" | "danger">(
+    "time"
+  );
 
   // Speed bonus tracking
   const [patternStartTimes, setPatternStartTimes] = useState<
@@ -77,7 +87,7 @@ export default function MutationChase() {
       }
 
       const matches = findExactMatches(newPattern, newStrand);
-      const newMaxTime = Math.max(15, 30 - level * 2); // Minimum 15 seconds and scales with level 
+      const newMaxTime = Math.max(15, 30 - level * 2); // Minimum 15 seconds and scales with level
 
       setPattern(newPattern);
       setStrand(newStrand);
@@ -226,6 +236,7 @@ export default function MutationChase() {
     setScore(0);
     setLevel(1);
     setDangerScore(0);
+    setGameState("playing");
     setSelectedBases(new Set());
     setCompletedMatches(new Set());
     setIncorrectBases(new Set());
@@ -249,18 +260,17 @@ export default function MutationChase() {
     if (gameState === "playing" && timeLeft > 0 && dangerScore < 100) {
       const timer = setTimeout(() => setTimeLeft((prev) => prev - 1), 1000);
       return () => clearTimeout(timer);
-    } else if (timeLeft === 0) {
+    } else if (gameState === "playing" && timeLeft === 0) {
       playGameOverSound();
       setGameOverReason("time");
       setGameState("gameOver");
-    } else if (dangerScore >= 100) {
+    } else if (gameState === "playing" && dangerScore >= 100) {
       playGameOverSound();
       setGameOverReason("danger");
       setGameState("gameOver");
     }
   }, [gameState, timeLeft, dangerScore, playGameOverSound]);
 
-  // Show loading state or nothing until client-side hydration is complete
   if (!isHydrated) {
     return (
       <div className="min-h-screen flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 flex items-center justify-center">
