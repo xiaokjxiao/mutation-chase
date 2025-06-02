@@ -16,7 +16,7 @@ const rajdhani = Rajdhani({
 });
 
 export const metadata: Metadata = {
-  title: "Mutation Chase - The Viral Escape",
+  title: "Crimson Carmine - The Infamous Carmine Virus",
   description: "A DNA pattern matching game using the Z-algorithm",
   generator: "v0.dev",
 };
