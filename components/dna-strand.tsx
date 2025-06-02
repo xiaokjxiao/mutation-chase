@@ -100,7 +100,7 @@ export function DNAStrand({
           const rect = baseElement.getBoundingClientRect();
           newAnimations.push({
             id: `penalty-${pos}-${Date.now()}`,
-            points: -10, 
+            points: -10,
             multiplier: 1,
             x: rect.left + rect.width / 2,
             y: rect.top,

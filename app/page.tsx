@@ -46,6 +46,8 @@ export default function MutationChase() {
   const [gameOverReason, setGameOverReason] = useState<"time" | "danger">(
     "time"
   );
+  // Add a flag to prevent game over sound when intentionally restarting
+  const [isIntentionalGameEnd, setIsIntentionalGameEnd] = useState(false);
 
   // Speed bonus tracking
   const [patternStartTimes, setPatternStartTimes] = useState<
@@ -118,6 +120,7 @@ export default function MutationChase() {
       setCurrentPatternStart(null);
       setCurrentSpeedBonus(1.0);
       setActivePatternElapsed(0);
+      setIsIntentionalGameEnd(false);
     });
   }, [level]);
 
@@ -245,9 +248,28 @@ export default function MutationChase() {
     setCurrentSpeedBonus(calculateSpeedBonus(elapsed));
   }, []);
 
-  // Restart game
+  // Go to main menu
+  const goToMainMenu = useCallback(() => {
+    setIsIntentionalGameEnd(true); // Set flag to prevent game over sound
+    setGameState("menu");
+    setScore(0);
+    setLevel(1);
+    setDangerScore(0);
+    setSelectedBases(new Set());
+    setCompletedMatches(new Set());
+    setIncorrectBases(new Set());
+    setPartialMatches(new Map());
+    setPatternStartTimes(new Map());
+    setCurrentPatternStart(null);
+    setCurrentSpeedBonus(1.0);
+    setActivePatternElapsed(0);
+  }, []);
+
+  // Restart game directly from game over screen
   const restartGame = useCallback(() => {
-    // First reset all game state
+    setIsIntentionalGameEnd(true); // Set flag to prevent game over sound
+
+    // Reset all game state
     setScore(0);
     setLevel(1);
     setDangerScore(0);
@@ -260,13 +282,10 @@ export default function MutationChase() {
     setCurrentSpeedBonus(1.0);
     setActivePatternElapsed(0);
 
-    // Set to menu state first, then start a new game
-    setGameState("menu");
-
-    // Delay starting a new game to ensure UI updates properly
-    setTimeout(() => {
+    // Start a new game immediately
+    startTransition(() => {
       startGame();
-    }, 100);
+    });
   }, [startGame]);
 
   // Timer effect
@@ -274,16 +293,26 @@ export default function MutationChase() {
     if (gameState === "playing" && timeLeft > 0 && dangerScore < 100) {
       const timer = setTimeout(() => setTimeLeft((prev) => prev - 1), 1000);
       return () => clearTimeout(timer);
-    } else if (timeLeft === 0) {
-      playGameOverSound();
+    } else if (timeLeft === 0 && gameState === "playing") {
+      if (!isIntentionalGameEnd) {
+        playGameOverSound();
+      }
       setGameOverReason("time");
       setGameState("gameOver");
-    } else if (dangerScore >= 100) {
-      playGameOverSound();
+    } else if (dangerScore >= 100 && gameState === "playing") {
+      if (!isIntentionalGameEnd) {
+        playGameOverSound();
+      }
       setGameOverReason("danger");
       setGameState("gameOver");
     }
-  }, [gameState, timeLeft, dangerScore, playGameOverSound]);
+  }, [
+    gameState,
+    timeLeft,
+    dangerScore,
+    playGameOverSound,
+    isIntentionalGameEnd,
+  ]);
 
   // Show loading state or nothing until client-side hydration is complete
   if (!isHydrated) {
@@ -309,6 +338,7 @@ export default function MutationChase() {
         score={score}
         level={level}
         onRestart={restartGame}
+        onMainMenu={goToMainMenu}
         reason={gameOverReason}
       />
     );

@@ -2,16 +2,23 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Skull } from "lucide-react";
+import { Skull, Home } from "lucide-react";
 
 interface GameOverProps {
   score: number;
   level: number;
   onRestart: () => void;
+  onMainMenu: () => void;
   reason: "time" | "danger";
 }
 
-export function GameOver({ score, level, onRestart, reason }: GameOverProps) {
+export function GameOver({
+  score,
+  level,
+  onRestart,
+  onMainMenu,
+  reason,
+}: GameOverProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-900 via-slate-900 to-red-900 flex items-center justify-center p-4">
       <Card className="w-full max-w-md bg-slate-900/90 backdrop-blur border-red-500/30 shadow-2xl">
@@ -36,12 +43,21 @@ export function GameOver({ score, level, onRestart, reason }: GameOverProps) {
                 : "Ran out of time!"}
             </p>
           </div>
-          <Button
-            onClick={onRestart}
-            className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 font-rajdhani font-semibold"
-          >
-            Try Again
-          </Button>
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              onClick={onMainMenu}
+              className="bg-gradient-to-r from-slate-700 to-slate-800 hover:from-slate-800 hover:to-slate-900 font-rajdhani font-semibold"
+            >
+              <Home className="w-4 h-4 mr-2" />
+              Main Menu
+            </Button>
+            <Button
+              onClick={onRestart}
+              className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 font-rajdhani font-semibold"
+            >
+              Try Again
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>
