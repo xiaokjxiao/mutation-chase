@@ -10,7 +10,7 @@ import { GameOver } from "@/components/game-over";
 import { SpeedIndicator } from "@/components/speed-indicator";
 import { useSound } from "@/hooks/use-sound";
 import { findExactMatches } from "@/utils/z-algorithm";
-import { generateDNA, calculateSpeedBonus } from "@/utils/game-utils";
+import { Dna } from "lucide-react";
 
 export default function MutationChase() {
   // Add a state to track client-side hydration
@@ -66,6 +66,22 @@ export default function MutationChase() {
     playPatternCompleteSound,
   } = useSound();
 
+  function generateDNA(length: number): string {
+    const bases = ["A", "T", "G", "C"];
+    return Array.from(
+      { length },
+      () => bases[Math.floor(Math.random() * bases.length)]
+    ).join("");
+  }
+
+  // Calculate speed bonus multiplier
+  function calculateSpeedBonus(completionTime: number): number {
+    if (completionTime < 3) return 3.0;
+    if (completionTime < 6) return 2.0;
+    if (completionTime < 10) return 1.5;
+    return 1.0;
+  }
+
   // Start new game
   const startGame = useCallback(() => {
     startTransition(() => {
@@ -86,7 +102,7 @@ export default function MutationChase() {
       }
 
       const matches = findExactMatches(newPattern, newStrand);
-      const newMaxTime = Math.max(15, 30 - level * 2); // Minimum 15 seconds and scales with level 
+      const newMaxTime = Math.max(15, 30 - level * 2); // Minimum 15 seconds and scales with level
 
       setPattern(newPattern);
       setStrand(newStrand);
@@ -273,8 +289,11 @@ export default function MutationChase() {
   if (!isHydrated) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 flex items-center justify-center">
-        <div className="text-white text-xl font-semibold font-rajdhani">
-          Loading game...
+        <div className="flex flex-col items-center justify-center text-white text-xl font-semibold font-rajdhani">
+          <div className="flex items-center justify-center mb-2">
+            <Dna className="w-16 h-16 animate-spin" />
+          </div>
+          <p className="m-4 text-3xl">Loading game</p>
         </div>
       </div>
     );
