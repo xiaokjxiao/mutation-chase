@@ -12,6 +12,7 @@ interface DNAStrandProps {
   incorrectBases: Set<number>;
   partialMatches: Map<number, Set<number>>;
   patternStartTimes: Map<number, number>;
+  disabled?: boolean; // Add disabled prop
 }
 
 interface BonusAnimation {
@@ -32,6 +33,7 @@ export function DNAStrand({
   incorrectBases,
   partialMatches,
   patternStartTimes,
+  disabled = false, // Default to enabled
 }: DNAStrandProps) {
   const [bonusAnimations, setBonusAnimations] = useState<BonusAnimation[]>([]);
   const [clickedBase, setClickedBase] = useState<number | null>(null);
@@ -130,6 +132,7 @@ export function DNAStrand({
   }, [completedMatches, patternStartTimes, selectedBases, incorrectBases]);
 
   const handleBaseClick = (index: number) => {
+    if (disabled) return; // Don't process clicks when disabled
     setClickedBase(index);
     setTimeout(() => setClickedBase(null), 600); // Reset after animation completes
     onBaseClick(index);
@@ -158,41 +161,56 @@ export function DNAStrand({
 
     // Base class with consistent styling
     let className =
-      "inline-block w-10 h-10 text-center leading-10 mx-1 my-1 rounded-lg font-bold font-mono text-lg cursor-pointer transition-all transform ";
+      "inline-block w-10 h-10 text-center leading-10 mx-1 my-1 rounded-lg font-bold font-mono text-lg";
+      
+    // Only add cursor-pointer and hover effects if not disabled
+    if (!disabled) {
+      className += " cursor-pointer transition-all transform";
+    } else {
+      className += " cursor-default";
+    }
 
     // Apply animation class if just clicked
     if (isJustClicked) {
-      className += "pulse-scale ";
+      className += " pulse-scale";
     }
 
     // Apply consistent base styles based on state
     if (isCompleted) {
       className +=
-        "bg-gradient-to-br from-emerald-500 to-emerald-700 text-white ring-2 ring-emerald-400 shadow-emerald-400/50 shadow-lg ";
+        " bg-gradient-to-br from-emerald-500 to-emerald-700 text-white ring-2 ring-emerald-400 shadow-emerald-400/50 shadow-lg";
     } else if (isPartialMatch) {
       className +=
-        "bg-gradient-to-br from-amber-400 to-amber-600 text-white ring-2 ring-amber-300 shadow-amber-400/50 shadow-lg ";
+        " bg-gradient-to-br from-amber-400 to-amber-600 text-white ring-2 ring-amber-300 shadow-amber-400/50 shadow-lg";
     } else if (isIncorrect) {
       className +=
-        "bg-gradient-to-br from-red-500 to-red-700 text-white ring-2 ring-red-400 shadow-red-400/50 shadow-lg ";
+        " bg-gradient-to-br from-red-500 to-red-700 text-white ring-2 ring-red-400 shadow-red-400/50 shadow-lg";
     } else {
       // If no special state, then apply base colors
       switch (base) {
         case "A":
-          className +=
-            "bg-gradient-to-br from-rose-300 to-rose-500 text-white hover:from-rose-400 hover:to-rose-600 hover:scale-110 hover:shadow-lg ";
+          className += " bg-gradient-to-br from-rose-300 to-rose-500 text-white";
+          if (!disabled) {
+            className += " hover:from-rose-400 hover:to-rose-600 hover:scale-110 hover:shadow-lg";
+          }
           break;
         case "T":
-          className +=
-            "bg-gradient-to-br from-sky-300 to-sky-500 text-white hover:from-sky-400 hover:to-sky-600 hover:scale-110 hover:shadow-lg ";
+          className += " bg-gradient-to-br from-sky-300 to-sky-500 text-white";
+          if (!disabled) {
+            className += " hover:from-sky-400 hover:to-sky-600 hover:scale-110 hover:shadow-lg";
+          }
           break;
         case "G":
-          className +=
-            "bg-gradient-to-br from-emerald-300 to-emerald-500 text-white hover:from-emerald-400 hover:to-emerald-600 hover:scale-110 hover:shadow-lg ";
+          className += " bg-gradient-to-br from-emerald-300 to-emerald-500 text-white";
+          if (!disabled) {
+            className += " hover:from-emerald-400 hover:to-emerald-600 hover:scale-110 hover:shadow-lg";
+          }
           break;
         case "C":
-          className +=
-            "bg-gradient-to-br from-amber-300 to-amber-500 text-white hover:from-amber-400 hover:to-amber-600 hover:scale-110 hover:shadow-lg ";
+          className += " bg-gradient-to-br from-amber-300 to-amber-500 text-white";
+          if (!disabled) {
+            className += " hover:from-amber-400 hover:to-amber-600 hover:scale-110 hover:shadow-lg";
+          }
           break;
       }
     }
@@ -218,11 +236,19 @@ export function DNAStrand({
           </CardTitle>
           <div className="text-slate-300 text-sm font-rajdhani space-y-2">
             <p>
-              Click each base in sequence to complete pattern matches.
-              <span className="text-amber-400 font-semibold">
-                {" "}
-                Complete patterns quickly for bonus points!
-              </span>
+              {disabled ? (
+                <span className="text-emerald-400 font-semibold">
+                  All patterns completed! Proceeding to next level...
+                </span>
+              ) : (
+                <>
+                  Click each base in sequence to complete pattern matches.
+                  <span className="text-amber-400 font-semibold">
+                    {" "}
+                    Complete patterns quickly for bonus points!
+                  </span>
+                </>
+              )}
             </p>
             <div className="flex flex-wrap gap-4 mt-1">
               <div className="flex items-center">

@@ -1,13 +1,12 @@
 "use client";
 
 import { useState, useEffect, useCallback, useTransition } from "react";
-import { GameHeader } from "@/components/game-header";
-import { StatusPanel } from "@/components/status-panel";
 import { PatternDisplay } from "@/components/pattern-display";
 import { DNAStrand } from "@/components/dna-strand";
 import { GameMenu } from "@/components/game-menu";
 import { GameOver } from "@/components/game-over";
 import { SpeedIndicator } from "@/components/speed-indicator";
+import { GameFooter } from "@/components/game-footer";
 import { useSound } from "@/hooks/use-sound";
 import { findExactMatches } from "@/utils/z-algorithm";
 import { Dna } from "lucide-react";
@@ -15,6 +14,9 @@ import { Dna } from "lucide-react";
 export default function CrimsonCarmine() {
   // Add a state to track client-side hydration
   const [isHydrated, setIsHydrated] = useState(false);
+  
+  // Add state to track if all patterns are completed
+  const [allPatternsCompleted, setAllPatternsCompleted] = useState(false);
 
   // Set hydration state after initial render
   useEffect(() => {
@@ -123,11 +125,14 @@ export default function CrimsonCarmine() {
       setActivePatternElapsed(0);
       setIsIntentionalGameEnd(false);
     });
-  }, [level, gameState]); 
-  
+  }, [level, gameState]);
+
   // Handle base click
   const handleBaseClick = useCallback(
     (position: number) => {
+      // Don't process clicks if all patterns are completed
+      if (allPatternsCompleted) return;
+      
       if (
         selectedBases.has(position) ||
         completedMatches.has(position) ||
@@ -201,11 +206,20 @@ export default function CrimsonCarmine() {
 
           // Check if all matches are completed
           if (newCompletedMatches.size === exactMatchPositions.size) {
+            // All patterns are found, disable further interactions
+            setAllPatternsCompleted(true);
+            
+            // Award time bonus
+            const timeBonus = timeLeft * 10;
+            setScore((prev) => prev + timeBonus);
+            
+            // Show completion message and proceed to next level after delay
             setTimeout(() => {
               playLevelUpSound();
               setLevel((prev) => prev + 1);
+              setAllPatternsCompleted(false); // Reset for next level
               startGame();
-            }, 1500);
+            }, 2000);
           }
         } else {
           // Partial match - award small points
@@ -240,6 +254,7 @@ export default function CrimsonCarmine() {
       playWrongSound,
       playPatternCompleteSound,
       playLevelUpSound,
+      allPatternsCompleted, // Add this dependency
     ]
   );
 
@@ -291,7 +306,8 @@ export default function CrimsonCarmine() {
 
   // Timer effect
   useEffect(() => {
-    if (gameState === "playing" && timeLeft > 0 && dangerScore < 100) {
+    if (gameState === "playing" && timeLeft > 0 && dangerScore < 100 && !allPatternsCompleted) {
+      // Only run timer if game is active and not all patterns completed
       const timer = setTimeout(() => setTimeLeft((prev) => prev - 1), 1000);
       return () => clearTimeout(timer);
     } else if (timeLeft === 0 && gameState === "playing") {
@@ -313,6 +329,7 @@ export default function CrimsonCarmine() {
     dangerScore,
     playGameOverSound,
     isIntentionalGameEnd,
+    allPatternsCompleted, // Add this dependency
   ]);
 
   // Show loading state or nothing until client-side hydration is complete
@@ -346,19 +363,23 @@ export default function CrimsonCarmine() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
-      <div className="max-w-6xl mx-auto space-y-6">
-        <GameHeader level={level} score={score} />
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 flex flex-col">
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center space-x-4">
+          <Dna className="w-8 h-8 text-cyan-400" />
+          <h1 className="text-2xl font-bold text-white font-orbitron">
+            Crimson Carmine
+          </h1>
+        </div>
+        
+        {allPatternsCompleted && (
+          <div className="bg-emerald-500/20 px-3 py-1 rounded-full text-emerald-400 font-semibold font-rajdhani animate-pulse">
+            Level Complete!
+          </div>
+        )}
+      </div>
 
-        <StatusPanel
-          timeLeft={timeLeft}
-          maxTime={maxTime}
-          dangerScore={dangerScore}
-          completedMatches={completedMatches.size}
-          totalExactMatches={exactMatchPositions.size}
-          currentBonus={currentSpeedBonus}
-        />
-
+      <div className="flex-1 max-w-6xl mx-auto w-full flex flex-col items-center justify-center space-y-6 pb-24">
         <PatternDisplay pattern={pattern} />
 
         <DNAStrand
@@ -370,14 +391,27 @@ export default function CrimsonCarmine() {
           incorrectBases={incorrectBases}
           partialMatches={partialMatches}
           patternStartTimes={patternStartTimes}
+          disabled={allPatternsCompleted} // Pass the disabled state
         />
 
         <SpeedIndicator
-          isActive={currentPatternStart !== null}
+          isActive={currentPatternStart !== null && !allPatternsCompleted}
           startTime={currentPatternStart}
           onTimeUpdate={handleTimeUpdate}
         />
       </div>
+
+      {/* Use the GameFooter component */}
+      <GameFooter
+        level={level}
+        score={score}
+        timeLeft={timeLeft}
+        maxTime={maxTime}
+        dangerScore={dangerScore}
+        completedMatches={completedMatches.size}
+        totalExactMatches={exactMatchPositions.size}
+        currentSpeedBonus={currentSpeedBonus}
+      />
     </div>
   );
 }
