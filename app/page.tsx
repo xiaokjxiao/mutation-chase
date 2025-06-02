@@ -87,8 +87,9 @@ export default function MutationChase() {
   // Start new game
   const startGame = useCallback(() => {
     startTransition(() => {
-      const newPattern = generateDNA(4 + Math.floor(level / 3));
-      const strandLength = 30 + level * 5;
+      const effectiveLevel = gameState === "gameOver" ? 1 : level;
+      const newPattern = generateDNA(4 + Math.floor(effectiveLevel / 3));
+      const strandLength = 30 + effectiveLevel * 5;
       let newStrand = generateDNA(strandLength);
 
       // Insert exact matches
@@ -104,7 +105,7 @@ export default function MutationChase() {
       }
 
       const matches = findExactMatches(newPattern, newStrand);
-      const newMaxTime = Math.max(15, 30 - level * 2); // Minimum 15 seconds and scales with level
+      const newMaxTime = Math.max(15, 30 - effectiveLevel * 2);
 
       setPattern(newPattern);
       setStrand(newStrand);
@@ -122,8 +123,8 @@ export default function MutationChase() {
       setActivePatternElapsed(0);
       setIsIntentionalGameEnd(false);
     });
-  }, [level]);
-
+  }, [level, gameState]); 
+  
   // Handle base click
   const handleBaseClick = useCallback(
     (position: number) => {
