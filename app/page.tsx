@@ -12,7 +12,7 @@ import { useSound } from "@/hooks/use-sound";
 import { findExactMatches } from "@/utils/z-algorithm";
 import { Dna } from "lucide-react";
 
-export default function MutationChase() {
+export default function CrimsonCarmine() {
   // Add a state to track client-side hydration
   const [isHydrated, setIsHydrated] = useState(false);
 
