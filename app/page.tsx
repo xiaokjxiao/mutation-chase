@@ -14,7 +14,7 @@ import { Dna } from "lucide-react";
 export default function CrimsonCarmine() {
   // Add a state to track client-side hydration
   const [isHydrated, setIsHydrated] = useState(false);
-  
+
   // Add state to track if all patterns are completed
   const [allPatternsCompleted, setAllPatternsCompleted] = useState(false);
 
@@ -94,23 +94,60 @@ export default function CrimsonCarmine() {
       const strandLength = 30 + effectiveLevel * 5;
       let newStrand = generateDNA(strandLength);
 
-      // Insert exact matches
-      const exactMatches = Math.floor(Math.random() * 2) + 2;
-      for (let i = 0; i < exactMatches; i++) {
+      // Insert exact matches - but make sure we track them properly
+      const desiredExactMatches = Math.floor(Math.random() * 2) + 2; // 2-3 matches
+      const insertPositions = new Set<number>();
+
+      // Generate non-overlapping positions for pattern insertions
+      while (insertPositions.size < desiredExactMatches) {
         const pos = Math.floor(
-          Math.random() * (newStrand.length - newPattern.length)
+          Math.random() * (strandLength - newPattern.length)
         );
-        newStrand =
-          newStrand.substring(0, pos) +
-          newPattern +
-          newStrand.substring(pos + newPattern.length);
+
+        // Check if this position would overlap with existing insertions
+        let overlaps = false;
+        for (const existingPos of insertPositions) {
+          if (
+            (pos >= existingPos && pos < existingPos + newPattern.length) ||
+            (existingPos >= pos && existingPos < pos + newPattern.length)
+          ) {
+            overlaps = true;
+            break;
+          }
+        }
+
+        if (!overlaps) {
+          insertPositions.add(pos);
+        }
       }
 
-      const matches = findExactMatches(newPattern, newStrand);
+      // Create a new strand with patterns inserted at those positions
+      // We need to insert from right to left to maintain positions
+      const positions = Array.from(insertPositions).sort((a, b) => b - a);
+      let finalStrand = newStrand;
+      for (const pos of positions) {
+        finalStrand =
+          finalStrand.substring(0, pos) +
+          newPattern +
+          finalStrand.substring(pos + newPattern.length);
+      }
+
+      const matches = findExactMatches(newPattern, finalStrand);
+
+      // Verify that we have the expected number of matches
+      if (matches.size !== desiredExactMatches) {
+        console.warn(
+          `Expected ${desiredExactMatches} matches, but found ${matches.size}. Regenerating...`
+        );
+        // If mismatch occurs, try again (should be rare with the overlap check)
+        startGame();
+        return;
+      }
+
       const newMaxTime = Math.max(15, 30 - effectiveLevel * 2);
 
       setPattern(newPattern);
-      setStrand(newStrand);
+      setStrand(finalStrand);
       setExactMatchPositions(matches);
       setGameState("playing");
       setTimeLeft(newMaxTime);
@@ -124,6 +161,7 @@ export default function CrimsonCarmine() {
       setCurrentSpeedBonus(1.0);
       setActivePatternElapsed(0);
       setIsIntentionalGameEnd(false);
+      setAllPatternsCompleted(false);
     });
   }, [level, gameState]);
 
@@ -132,7 +170,7 @@ export default function CrimsonCarmine() {
     (position: number) => {
       // Don't process clicks if all patterns are completed
       if (allPatternsCompleted) return;
-      
+
       if (
         selectedBases.has(position) ||
         completedMatches.has(position) ||
@@ -208,11 +246,11 @@ export default function CrimsonCarmine() {
           if (newCompletedMatches.size === exactMatchPositions.size) {
             // All patterns are found, disable further interactions
             setAllPatternsCompleted(true);
-            
+
             // Award time bonus
             const timeBonus = timeLeft * 10;
             setScore((prev) => prev + timeBonus);
-            
+
             // Show completion message and proceed to next level after delay
             setTimeout(() => {
               playLevelUpSound();
@@ -306,7 +344,12 @@ export default function CrimsonCarmine() {
 
   // Timer effect
   useEffect(() => {
-    if (gameState === "playing" && timeLeft > 0 && dangerScore < 100 && !allPatternsCompleted) {
+    if (
+      gameState === "playing" &&
+      timeLeft > 0 &&
+      dangerScore < 100 &&
+      !allPatternsCompleted
+    ) {
       // Only run timer if game is active and not all patterns completed
       const timer = setTimeout(() => setTimeLeft((prev) => prev - 1), 1000);
       return () => clearTimeout(timer);
@@ -371,7 +414,7 @@ export default function CrimsonCarmine() {
             Crimson Carmine
           </h1>
         </div>
-        
+
         {allPatternsCompleted && (
           <div className="bg-emerald-500/20 px-3 py-1 rounded-full text-emerald-400 font-semibold font-rajdhani animate-pulse">
             Level Complete!
