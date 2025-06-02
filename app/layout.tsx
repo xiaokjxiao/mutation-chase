@@ -28,27 +28,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <style>{`
-          @keyframes fadeUpAnimation {
-            0% {
-              opacity: 1;
-              transform: translate(-50%, 0);
-            }
-            80% {
-              opacity: 0.8;
-            }
-            100% {
-              opacity: 0;
-              transform: translate(-50%, -50px);
-            }
-          }
-          
-          .animate-fade-up {
-            animation: fadeUpAnimation 1.5s forwards;
-          }
-        `}</style>
-      </head>
       <body
         suppressHydrationWarning
         className={`${orbitron.variable} ${rajdhani.variable} antialiased`}

@@ -33,9 +33,9 @@ export function SpeedIndicator({
   if (!isActive) return null;
 
   const getSpeedColor = (time: number) => {
-    if (time < 3) return "text-green-400";
-    if (time < 6) return "text-blue-400";
-    if (time < 10) return "text-amber-400";
+    if (time < 3) return "text-emerald-400";
+    if (time < 6) return "text-amber-400";
+    if (time < 10) return "text-orange-400";
     return "text-red-400";
   };
 
@@ -46,19 +46,8 @@ export function SpeedIndicator({
     return "Too slow...";
   };
 
-  const getBorderColor = (time: number) => {
-    if (time < 3) return "border-green-500/50";
-    if (time < 6) return "border-blue-500/50";
-    if (time < 10) return "border-amber-500/50";
-    return "border-red-500/50";
-  };
-
   return (
-    <div
-      className={`fixed top-4 right-4 bg-slate-900/90 backdrop-blur rounded-lg p-3 border-2 ${getBorderColor(
-        elapsed
-      )} z-40 shadow-xl`}
-    >
+    <div className="fixed top-4 right-4 bg-slate-900/90 backdrop-blur rounded-lg p-3 border border-cyan-500/30 z-40 shadow-xl">
       <div className="text-white text-sm font-semibold font-rajdhani">
         Pattern in Progress
       </div>

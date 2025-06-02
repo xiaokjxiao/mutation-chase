@@ -10,8 +10,7 @@ import { GameOver } from "@/components/game-over";
 import { SpeedIndicator } from "@/components/speed-indicator";
 import { useSound } from "@/hooks/use-sound";
 import { findExactMatches } from "@/utils/z-algorithm";
-import { generateDNA, calculateSpeedBonus } from "@/game-utils/game-utils";
-import { Dna } from "lucide-react";
+import { generateDNA, calculateSpeedBonus } from "@/utils/game-utils";
 
 export default function MutationChase() {
   // Add a state to track client-side hydration
@@ -23,20 +22,30 @@ export default function MutationChase() {
   }, []);
 
   const [isPending, startTransition] = useTransition();
-  const [gameState, setGameState] = useState<"menu" | "playing" | "gameOver">("menu");
+  const [gameState, setGameState] = useState<"menu" | "playing" | "gameOver">(
+    "menu"
+  );
   const [pattern, setPattern] = useState("");
   const [strand, setStrand] = useState("");
-  const [exactMatchPositions, setExactMatchPositions] = useState<Set<number>>(new Set());
+  const [exactMatchPositions, setExactMatchPositions] = useState<Set<number>>(
+    new Set()
+  );
   const [timeLeft, setTimeLeft] = useState(30);
   const [maxTime, setMaxTime] = useState(30);
   const [score, setScore] = useState(0);
   const [level, setLevel] = useState(1);
   const [dangerScore, setDangerScore] = useState(0);
   const [selectedBases, setSelectedBases] = useState<Set<number>>(new Set());
-  const [completedMatches, setCompletedMatches] = useState<Set<number>>(new Set());
+  const [completedMatches, setCompletedMatches] = useState<Set<number>>(
+    new Set()
+  );
   const [incorrectBases, setIncorrectBases] = useState<Set<number>>(new Set());
-  const [partialMatches, setPartialMatches] = useState<Map<number, Set<number>>>(new Map());
-  const [gameOverReason, setGameOverReason] = useState<"time" | "danger">("time");
+  const [partialMatches, setPartialMatches] = useState<
+    Map<number, Set<number>>
+  >(new Map());
+  const [gameOverReason, setGameOverReason] = useState<"time" | "danger">(
+    "time"
+  );
 
   // Speed bonus tracking
   const [patternStartTimes, setPatternStartTimes] = useState<
@@ -235,14 +244,14 @@ export default function MutationChase() {
     setCurrentSpeedBonus(1.0);
     setActivePatternElapsed(0);
 
-    // Start new game immediately
-    startGame();
-  }, [startGame]);
-
-  // Return to menu
-  const returnToMenu = useCallback(() => {
+    // Set to menu state first, then start a new game
     setGameState("menu");
-  }, []);
+
+    // Delay starting a new game to ensure UI updates properly
+    setTimeout(() => {
+      startGame();
+    }, 100);
+  }, [startGame]);
 
   // Timer effect
   useEffect(() => {
@@ -263,9 +272,8 @@ export default function MutationChase() {
   // Show loading state or nothing until client-side hydration is complete
   if (!isHydrated) {
     return (
-      <div className="min-h-screen flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 flex items-center justify-center">
-        <Dna className="w-16 h-16 text-cyan-400 animate-spin mb-4" />
-        <div className="text-white text-3xl font-semibold font-rajdhani">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 flex items-center justify-center">
+        <div className="text-white text-xl font-semibold font-rajdhani">
           Loading game...
         </div>
       </div>
@@ -282,7 +290,6 @@ export default function MutationChase() {
         score={score}
         level={level}
         onRestart={restartGame}
-        onReturnToMenu={returnToMenu}
         reason={gameOverReason}
       />
     );
