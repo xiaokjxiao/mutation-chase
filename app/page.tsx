@@ -12,13 +12,9 @@ import { findExactMatches } from "@/utils/z-algorithm";
 import { Dna } from "lucide-react";
 
 export default function CrimsonCarmine() {
-  // Add a state to track client-side hydration
   const [isHydrated, setIsHydrated] = useState(false);
-
-  // Add state to track if all patterns are completed
   const [allPatternsCompleted, setAllPatternsCompleted] = useState(false);
 
-  // Set hydration state after initial render
   useEffect(() => {
     setIsHydrated(true);
   }, []);
@@ -48,10 +44,8 @@ export default function CrimsonCarmine() {
   const [gameOverReason, setGameOverReason] = useState<"time" | "danger">(
     "time"
   );
-  // Add a flag to prevent game over sound when intentionally restarting
   const [isIntentionalGameEnd, setIsIntentionalGameEnd] = useState(false);
 
-  // Speed bonus tracking
   const [patternStartTimes, setPatternStartTimes] = useState<
     Map<number, number>
   >(new Map());
@@ -61,7 +55,6 @@ export default function CrimsonCarmine() {
   const [currentSpeedBonus, setCurrentSpeedBonus] = useState(1.0);
   const [activePatternElapsed, setActivePatternElapsed] = useState(0);
 
-  // Sound effects
   const {
     playCorrectSound,
     playWrongSound,
@@ -78,7 +71,6 @@ export default function CrimsonCarmine() {
     ).join("");
   }
 
-  // Calculate speed bonus multiplier
   function calculateSpeedBonus(completionTime: number): number {
     if (completionTime < 3) return 3.0;
     if (completionTime < 6) return 2.0;
@@ -86,7 +78,6 @@ export default function CrimsonCarmine() {
     return 1.0;
   }
 
-  // Start new game
   const startGame = useCallback(() => {
     startTransition(() => {
       const effectiveLevel = gameState === "gameOver" ? 1 : level;
@@ -94,17 +85,14 @@ export default function CrimsonCarmine() {
       const strandLength = 30 + effectiveLevel * 5;
       let newStrand = generateDNA(strandLength);
 
-      // Insert exact matches - but make sure we track them properly
-      const desiredExactMatches = Math.floor(Math.random() * 2) + 2; // 2-3 matches
+      const desiredExactMatches = Math.floor(Math.random() * 2) + 2;
       const insertPositions = new Set<number>();
 
-      // Generate non-overlapping positions for pattern insertions
       while (insertPositions.size < desiredExactMatches) {
         const pos = Math.floor(
           Math.random() * (strandLength - newPattern.length)
         );
 
-        // Check if this position would overlap with existing insertions
         let overlaps = false;
         for (const existingPos of insertPositions) {
           if (
@@ -121,8 +109,6 @@ export default function CrimsonCarmine() {
         }
       }
 
-      // Create a new strand with patterns inserted at those positions
-      // We need to insert from right to left to maintain positions
       const positions = Array.from(insertPositions).sort((a, b) => b - a);
       let finalStrand = newStrand;
       for (const pos of positions) {
@@ -134,12 +120,10 @@ export default function CrimsonCarmine() {
 
       const matches = findExactMatches(newPattern, finalStrand);
 
-      // Verify that we have the expected number of matches
       if (matches.size !== desiredExactMatches) {
         console.warn(
           `Expected ${desiredExactMatches} matches, but found ${matches.size}. Regenerating...`
         );
-        // If mismatch occurs, try again (should be rare with the overlap check)
         startGame();
         return;
       }
@@ -165,10 +149,8 @@ export default function CrimsonCarmine() {
     });
   }, [level, gameState]);
 
-  // Handle base click
   const handleBaseClick = useCallback(
     (position: number) => {
-      // Don't process clicks if all patterns are completed
       if (allPatternsCompleted) return;
 
       if (
@@ -178,7 +160,6 @@ export default function CrimsonCarmine() {
       )
         return;
 
-      // Check if this position is part of any exact match
       let belongsToMatch = false;
       let matchStartPos = -1;
 
@@ -193,7 +174,6 @@ export default function CrimsonCarmine() {
       if (belongsToMatch) {
         playCorrectSound();
 
-        // Start timing if this is the first base of a new pattern
         const newPatternStartTimes = new Map(patternStartTimes);
         if (!newPatternStartTimes.has(matchStartPos)) {
           newPatternStartTimes.set(matchStartPos, Date.now());
@@ -201,12 +181,10 @@ export default function CrimsonCarmine() {
           setCurrentPatternStart(Date.now());
         }
 
-        // Add to selected bases
         const newSelectedBases = new Set(selectedBases);
         newSelectedBases.add(position);
         setSelectedBases(newSelectedBases);
 
-        // Update partial matches
         const newPartialMatches = new Map(partialMatches);
         if (!newPartialMatches.has(matchStartPos)) {
           newPartialMatches.set(matchStartPos, new Set());
@@ -214,66 +192,53 @@ export default function CrimsonCarmine() {
         newPartialMatches.get(matchStartPos)!.add(position);
         setPartialMatches(newPartialMatches);
 
-        // Check if the entire match is completed
         const selectedInThisMatch = newPartialMatches.get(matchStartPos)!;
         if (selectedInThisMatch.size === pattern.length) {
           playPatternCompleteSound();
 
-          // Calculate completion time and speed bonus
           const startTime = newPatternStartTimes.get(matchStartPos)!;
           const completionTime = (Date.now() - startTime) / 1000;
           const speedMultiplier = calculateSpeedBonus(completionTime);
           const basePoints = 200 * level;
           const bonusPoints = Math.floor(basePoints * speedMultiplier);
 
-          // Complete match found
           const newCompletedMatches = new Set(completedMatches);
           newCompletedMatches.add(matchStartPos);
           setCompletedMatches(newCompletedMatches);
 
-          // Remove from partial matches
           newPartialMatches.delete(matchStartPos);
           setPartialMatches(newPartialMatches);
 
-          // Reset current pattern timing
           setCurrentPatternStart(null);
           setActivePatternElapsed(0);
 
-          // Award points with speed bonus
           setScore((prev) => prev + bonusPoints);
 
-          // Check if all matches are completed
           if (newCompletedMatches.size === exactMatchPositions.size) {
-            // All patterns are found, disable further interactions
             setAllPatternsCompleted(true);
 
-            // Award time bonus
             const timeBonus = timeLeft * 10;
             setScore((prev) => prev + timeBonus);
 
-            // Show completion message and proceed to next level after delay
             setTimeout(() => {
               playLevelUpSound();
               setLevel((prev) => prev + 1);
-              setAllPatternsCompleted(false); // Reset for next level
+              setAllPatternsCompleted(false);
               startGame();
             }, 2000);
           }
         } else {
-          // Partial match - award small points
           setScore((prev) => prev + 10 * level);
         }
       } else {
         playWrongSound();
 
-        // Wrong selection
         const newIncorrectBases = new Set(incorrectBases);
         newIncorrectBases.add(position);
         setIncorrectBases(newIncorrectBases);
         setDangerScore((prev) => Math.min(100, prev + 10));
         setScore((prev) => Math.max(0, prev - 50));
 
-        // Reset current pattern timing if active
         setCurrentPatternStart(null);
         setActivePatternElapsed(0);
       }
@@ -292,19 +257,17 @@ export default function CrimsonCarmine() {
       playWrongSound,
       playPatternCompleteSound,
       playLevelUpSound,
-      allPatternsCompleted, // Add this dependency
+      allPatternsCompleted,
     ]
   );
 
-  // Update current speed bonus based on active pattern
   const handleTimeUpdate = useCallback((elapsed: number) => {
     setActivePatternElapsed(elapsed);
     setCurrentSpeedBonus(calculateSpeedBonus(elapsed));
   }, []);
 
-  // Go to main menu
   const goToMainMenu = useCallback(() => {
-    setIsIntentionalGameEnd(true); // Set flag to prevent game over sound
+    setIsIntentionalGameEnd(true);
     setGameState("menu");
     setScore(0);
     setLevel(1);
@@ -319,11 +282,9 @@ export default function CrimsonCarmine() {
     setActivePatternElapsed(0);
   }, []);
 
-  // Restart game directly from game over screen
   const restartGame = useCallback(() => {
-    setIsIntentionalGameEnd(true); // Set flag to prevent game over sound
+    setIsIntentionalGameEnd(true);
 
-    // Reset all game state
     setScore(0);
     setLevel(1);
     setDangerScore(0);
@@ -336,13 +297,11 @@ export default function CrimsonCarmine() {
     setCurrentSpeedBonus(1.0);
     setActivePatternElapsed(0);
 
-    // Start a new game immediately
     startTransition(() => {
       startGame();
     });
   }, [startGame]);
 
-  // Timer effect
   useEffect(() => {
     if (
       gameState === "playing" &&
@@ -350,7 +309,6 @@ export default function CrimsonCarmine() {
       dangerScore < 100 &&
       !allPatternsCompleted
     ) {
-      // Only run timer if game is active and not all patterns completed
       const timer = setTimeout(() => setTimeLeft((prev) => prev - 1), 1000);
       return () => clearTimeout(timer);
     } else if (timeLeft === 0 && gameState === "playing") {
@@ -372,10 +330,9 @@ export default function CrimsonCarmine() {
     dangerScore,
     playGameOverSound,
     isIntentionalGameEnd,
-    allPatternsCompleted, // Add this dependency
+    allPatternsCompleted,
   ]);
 
-  // Show loading state or nothing until client-side hydration is complete
   if (!isHydrated) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 flex items-center justify-center">
@@ -434,7 +391,7 @@ export default function CrimsonCarmine() {
           incorrectBases={incorrectBases}
           partialMatches={partialMatches}
           patternStartTimes={patternStartTimes}
-          disabled={allPatternsCompleted} // Pass the disabled state
+          disabled={allPatternsCompleted}
         />
 
         <SpeedIndicator
@@ -444,7 +401,6 @@ export default function CrimsonCarmine() {
         />
       </div>
 
-      {/* Use the GameFooter component */}
       <GameFooter
         level={level}
         score={score}
